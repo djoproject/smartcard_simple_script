@@ -97,7 +97,10 @@ if __name__ == "__main__":
     
     #read each sector
     print "page no\t  data"
+    full_data = []
     for i in range(0,41, 4):
-        print str(i) + "-" + str(i+3) + "\t: " + str(transmit([0x30,i]))
+        data = transmit([0x30,i])
+        full_data.extend(data)
+        print str(i) + "-" + str(i+3) + "\t: " + str(data)
     
-    
+    print "".join(chr(b) for b in full_data)
