@@ -236,6 +236,7 @@ for block in blocks:
     
 print "vcard written"
 
+
 ### PART 10 (Read a vcard from the RFID tag) ###
 
 # dump all the user memory to a string
@@ -246,24 +247,36 @@ for sector_number in sector_numbers:
     for octet in transfer(connection, [0x30, sector_number]):
         tag_data += chr(octet)
 
+
 # stupid vcard parsing algorithm:
 # a main loop over the lines
 # print lines between the first encountered BEGIN:VCARD END:VCARD
 # delegate the parsing to the appropriate printing function
 
 # delegate functions:
-def pretty_print_n(name_data):
+def format_n(name_data):
     # https://tools.ietf.org/html/rfc2426#section-3.1.2
     # actual format: Family Name;Given Name;Additional Names;Honorific Prefixes;Honorific Suffixes
-    if len(name_data.split()) < 5:
-        print "Unparsable N record: " + name_data
+    if len(name_data.split(";")) != 5:
+        print "Unparsable N record: number of semicolon-separated fields is not 5: " + name_data
+        return "ERROR"
 
-    family_name, given_name, add_names, prefixes, suffixes = name_data.split()
+    family_name, given_name, add_names, prefixes, suffixes = name_data.split(";")
     if prefixes != "":
-        print prefixes + " " + given_name + " " + family_name
+        return prefixes + " " + given_name + " " + family_name
     else:
-        print given_name + " " + family_name
+        return given_name + " " + family_name
 
+
+def format_address(address_data):
+    # https://tools.ietf.org/html/rfc2426#section-3.2.1
+    # format: post office box;extended address;street address;city;region;postal code;country
+    if len(address_data.split(";")) != 7:
+        print "Unparsable ADR record: number of semicolon-separated fields is not 7: " + address_data
+        return "ERROR"
+
+    box, ext_addr, street_address, city, region, p_code, country = address_data.split(";")
+    return street_address + ", " + city + ", " + country
     
 
 def pretty_print_vcard_line(line):
@@ -275,14 +288,28 @@ def pretty_print_vcard_line(line):
         return
 
     if record_type.upper() == "N":
-        pretty_print_n(record_data)
+        print "Name: " + format_n(record_data)
 
-    todo_todo_todo
-        
+    if record_type.upper() == "ADR;DOM;PARCEL;HOME":
+        print "Home: " + format_address(record_data)
+    elif record_type.upper().startswith("ADR"):
+        print "Other address: " + format_address(record_data)
 
-# stupid vcard parsing algorithm:
+    if record_type.upper().startswith("EMAIL"):
+        print "Email: " + record_data
+
+    if record_type.upper().startswith("TITLE"):
+        print "Title: " + record_data
+
+    if record_type.upper().startswith("ROLE"):
+        print "Role: " + record_data
+
+    if record_type.upper().startswith("ORG"):
+        print "Organisation: " + record_data
+
+    # ignore non-matching types
+
 # a main loop over the lines
-# print lines between the first encountered BEGIN:VCARD END:VCARD
 found_vcard = False
 for line_with_ending in tag_data.splitlines():
     # remove line_with_ending ending characters
@@ -290,6 +317,7 @@ for line_with_ending in tag_data.splitlines():
 
     if line.upper().startswith("BEGIN:VCARD"):
         found_vcard = True
+        print "#=== Vcard info ===#"
         continue
 
     if not found_vcard:
@@ -297,10 +325,13 @@ for line_with_ending in tag_data.splitlines():
 
     if line.upper().startswith("END:VCARD"):
         # stop processing if we reached the end of the vcard
+        print "#==================#"
         break
 
-    print line
     pretty_print_vcard_line(line)
+
+if not found_vcard:
+    print "No vcard found to read on the tag"
 
 ### PART 11 () ###
 
