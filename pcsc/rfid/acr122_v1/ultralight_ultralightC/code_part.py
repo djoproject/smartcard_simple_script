@@ -168,13 +168,69 @@ print "wrote data"
 # data should be the empty list, because no data is sent back from the reader
 # this is a read, after all
 
-
 ### PART 9 () ###
+
+## Vcard
+
+#VERSION:2.1 !!!
+
+# basically works like:
+# <field name>:<field part 1>;<field part 2>;...
+
+# let's write
+
+#BEGIN:VCARD
+#N:Potter;Harry;;Mr;
+#ADR;DOM;PARCEL;HOME:;;Privet Drive;Little Whinging;Surrey;;United Kingdom
+#EMAIL;INTERNET:harry.potter@hogwarts.edu
+#ORG:hogwarts
+#TITLE:wizard
+#ROLE:student
+#END:VCARD
+
+# in python, statements continue until last ([{ is closed
+# + using this form (intead of triple-quoted strings) to explicit the line terminator
+vcard = ( "BEGIN:VCARD\n"
+        + "N:Potter;Harry;;Mr;\n"
+        + "ADR;DOM;PARCEL;HOME:;;4, Privet Drive;Little Whinging;Surrey;;\n"
+        + "TITLE:wizard\n"
+        + "ROLE:student\n"
+        + "END:VCARD\n"
+        )
+
+# if you are used to python, rewrite the following using slices!
+# <ugly warning>you should not program like this in python</ugly warning>
+
+# split vcards characters in blocs of 4 octets
+blocks = []
+for block_number in range(len(vcard) / 4):
+    index = block_number * 4
+    blocks += [[ord(vcard[index]), ord(vcard[index+1]), ord(vcard[index+2]), ord(vcard[index+3])]]
+
+# finish last block
+last_block = []
+for index in range(len(blocks) * 4, len(vcard)):
+    last_block += [ord(vcard[index])]
+
+# add last block if needed
+if last_block != []:
+    blocks += [last_block]
+
+# verify we will be able to write all in user memory
+if len(blocks) > LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE:
+    print "vcard is too large for the user memory of the card!"
+    print "number of required blocs: " + str(len(blocks))
+    print "number of 4 byte user memory blocs: " + str(LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE)
+    exit()
+
+
+# 
+# write each block to the card
+
 
 ### PART 10 () ###
 
 ### PART 11 () ###
 
 ### PART 12 () ###
-
 
