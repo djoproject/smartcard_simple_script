@@ -140,7 +140,7 @@ def transfer(connection, tag_apdu):
 
     #check error code
     if sw1 != 0x61:
-        print "to chip error"
+        print "to chip error:" + str(sw1)
         exit()
 
     #retrieve response
@@ -148,7 +148,7 @@ def transfer(connection, tag_apdu):
 
     #check error code
     if sw1 != 0x90 and sw2 != 0x00:
-        print "get Response error"
+        print "get Response error: " + str(sw1) + " " + str(sw2)
         exit()
         
     if len(data) < 3:
@@ -168,7 +168,7 @@ print "wrote data"
 # data should be the empty list, because no data is sent back from the reader
 # this is a read, after all
 
-### PART 9 () ###
+### PART 9 (Writing a vcard) ###
 
 ## Vcard
 
@@ -192,8 +192,7 @@ print "wrote data"
 # + using this form (intead of triple-quoted strings) to explicit the line terminator
 vcard = ( "BEGIN:VCARD\n"
         + "N:Potter;Harry;;Mr;\n"
-        + "ADR;DOM;PARCEL;HOME:;;4, Privet Drive;Little Whinging;Surrey;;\n"
-        + "TITLE:wizard\n"
+        + "ADR;DOM;PARCEL;HOME:;;4, Privet Drive;Little Whinging;Surrey;;UK\n"
         + "ROLE:student\n"
         + "END:VCARD\n"
         )
@@ -219,14 +218,23 @@ if last_block != []:
 # verify we will be able to write all in user memory
 if len(blocks) > LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE:
     print "vcard is too large for the user memory of the card!"
-    print "number of required blocs: " + str(len(blocks))
-    print "number of 4 byte user memory blocs: " + str(LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE)
+    print "number of required memory pages: " + str(len(blocks))
+    print "number of 4 byte user memory pages: " + str(LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE)
     exit()
 
 
-# 
 # write each block to the card
+page_number=4
+for block in blocks:
+    padding = [0x00, 0x00, 0x00, 0x00, 
+            0x00, 0x00, 0x00, 0x00, 
+            0x00, 0x00, 0x00, 0x00] 
 
+    full_apdu = [0xa0, page_number] + block + padding
+    transfer(connection, full_apdu)
+    page_number += 1
+    
+print "vcard written"
 
 ### PART 10 () ###
 
