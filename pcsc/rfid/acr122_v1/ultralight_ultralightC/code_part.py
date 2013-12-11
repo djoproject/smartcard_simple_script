@@ -155,12 +155,13 @@ def transfer(connection, tag_apdu):
     return data[3:]
 
 sector_to_write = 0x4
-data = [0x01, 0x02, 0x03, 0x04]
+data = [0x4F, 0x54, 0x53, 0x0A]
 padding = [0x00, 0x00, 0x00, 0x00, 
         0x00, 0x00, 0x00, 0x00, 
         0x00, 0x00, 0x00, 0x00] 
 full_apdu = [0xa0, sector_to_write] + data + padding
 transfer(connection, full_apdu)
+print "wrote data"
 # data should be the empty list, because no data is sent back from the reader
 # this is a read, after all
 
