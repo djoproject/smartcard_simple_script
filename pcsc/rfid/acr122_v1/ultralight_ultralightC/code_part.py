@@ -246,6 +246,39 @@ for sector_number in sector_numbers:
     for octet in transfer(connection, [0x30, sector_number]):
         tag_data += chr(octet)
 
+# stupid vcard parsing algorithm:
+# a main loop over the lines
+# print lines between the first encountered BEGIN:VCARD END:VCARD
+# delegate the parsing to the appropriate printing function
+
+# delegate functions:
+def pretty_print_n(name_data):
+    # https://tools.ietf.org/html/rfc2426#section-3.1.2
+    # actual format: Family Name;Given Name;Additional Names;Honorific Prefixes;Honorific Suffixes
+    if len(name_data.split()) < 5:
+        print "Unparsable N record: " + name_data
+
+    family_name, given_name, add_names, prefixes, suffixes = name_data.split()
+    if prefixes != "":
+        print prefixes + " " + given_name + " " + family_name
+    else:
+        print given_name + " " + family_name
+
+    
+
+def pretty_print_vcard_line(line):
+    # separate line on record type and record data
+    record_type, sep, record_data = line.partition(":")
+
+    if sep != ":": # could not find separator
+        print "No colon: unable to parse " + line
+        return
+
+    if record_type.upper() == "N":
+        pretty_print_n(record_data)
+
+    todo_todo_todo
+        
 
 # stupid vcard parsing algorithm:
 # a main loop over the lines
