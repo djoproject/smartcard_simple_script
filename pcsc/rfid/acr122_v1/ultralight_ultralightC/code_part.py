@@ -236,7 +236,38 @@ for block in blocks:
     
 print "vcard written"
 
-### PART 10 () ###
+### PART 10 (Read a vcard from the RFID tag) ###
+
+# dump all the user memory to a string
+tag_data = ""
+# we can read 4 pages at a time, hence the extra 'step' parameter
+sector_numbers = range(FIRST_USER_MEMORY_PAGE, LAST_USER_MEMORY_PAGE + 1, step=4)
+for sector_number in sector_numbers:
+    for octet in transfer(connection, [0x30, sector_number]):
+        tag_data += chr(octet)
+
+
+# stupid vcard parsing algorithm:
+# a main loop over the lines
+# print lines between the first encountered BEGIN:VCARD END:VCARD
+found_vcard = False
+for line_with_ending in tag_data.splitline_with_endings():
+    # remove line_with_ending ending characters
+    line = line_with_ending.rstrip("\r\n")
+
+    if line.upper().startswith("BEGIN:VCARD"):
+        found_vcard = True
+        continue
+
+    if not found_vcard:
+        continue
+
+    if line.upper().startswith("END:VCARD"):
+        # stop processing if we reached the end of the vcard
+        break
+
+    print line
+    pretty_print_vcard_line(line)
 
 ### PART 11 () ###
 
