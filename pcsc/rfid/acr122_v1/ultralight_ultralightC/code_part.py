@@ -115,14 +115,17 @@ print string_data
 
 ### PART 8 (write data) ###
 
+FIRST_USER_MEMORY_PAGE = 4
+LAST_USER_MEMORY_PAGE = 39
+
 # second version of transfer, with a guard
 def transfer(connection, tag_apdu):
     # preserve the tags: prevent writing readonly and write-once memory
     write_command = 0xa0
-    first_user_memory_page = 0x04
+    allowed_memory_pages = range(FIRST_USER_MEMORY_PAGE, LAST_USER_MEMORY_PAGE + 1)
 
-    if tag_apdu[0] == write_command and tag_apdu[1] < first_user_memory_page:
-        print "Ouch! Attempted to write readonly/write-once memory. Your apdu: " + str(tag_apdu)
+    if tag_apdu[0] == write_command and tag_apdu[1] not in allowed_memory_pages:
+        print "Ouch! Attempted to write non-user memory. Your apdu: " + str(tag_apdu)
         exit()
         
     pn53x_apdu = [0xd4, 0x40, 0x01]
