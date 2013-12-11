@@ -101,9 +101,17 @@ def transfer(connection, tag_apdu):
 
 
 ### PART 7 (read data) ###
-sector_to_read = 0x0
+sector_to_read = 0x04
 data = transfer(connection, [0x30, sector_to_read])
 print data
+
+# but this is ugly => convert to characters
+# advice: extract in a function
+string_data = ""
+for octet in data:
+    string_data += chr(octet)
+
+print string_data
 
 ### PART 8 (write data) ###
 
