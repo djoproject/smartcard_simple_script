@@ -96,7 +96,8 @@ if __name__ == "__main__":
     getReaderVersion(connection)
     
     #read each sector
+    print "page no\t  data"
     for i in range(0,41, 4):
-        print i," : ", transmit([0x30,i])
+        print str(i) + "-" + str(i+3) + "\t: " + str(transmit([0x30,i]))
     
     
