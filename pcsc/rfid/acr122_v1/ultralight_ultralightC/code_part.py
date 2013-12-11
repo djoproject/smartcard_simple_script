@@ -106,9 +106,56 @@ data = transfer(connection, [0x30, sector_to_read])
 print data
 
 ### PART 8 (write data) ###
+
+# second version of transfer, with a guard
+def transfer(connection, tag_apdu):
+    # preserve the tags: prevent writing readonly and write-once memory
+    write_command = 0xa0
+    first_user_memory_page = 0x04
+
+    if tag_apdu[0] == write_command and tag_apdu[1] < first_user_memory_page:
+        print "Ouch! Attempted to write readonly/write-once memory. Your apdu: " + str(tag_apdu)
+        exit()
+        
+    pn53x_apdu = [0xd4, 0x40, 0x01]
+    pn53x_apdu.extend(tag_apdu)
+    
+    send_data = [0xff, 0x0, 0x0, 0x0, len(pn53x_apdu),]
+    send_data.extend(pn53x_apdu)
+    send_data.append(0x0) #data expected
+    
+    #send request
+    data, sw1, sw2 = connection.transmit(send_data)
+
+    #check error code
+    if sw1 != 0x61:
+        print "to chip error"
+        exit()
+
+    #retrieve response
+    data, sw1, sw2 = connection.transmit([0xff,0xC0,0x0,0x0,sw2]) 
+
+    #check error code
+    if sw1 != 0x90 and sw2 != 0x00:
+        print "get Response error"
+        exit()
+        
+    if len(data) < 3:
+        print "Not enough data"
+        exit()
+        
+    return data[3:]
+
 sector_to_write = 0x4
 data = [0x01, 0x02, 0x03, 0x04]
-transfer(connection, [0x30, sector_to_read]) #TODO
+padding = [0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00] 
+full_apdu = [0xa0, sector_to_write] + data + padding
+transfer(connection, full_apdu)
+# data should be the empty list, because no data is sent back from the reader
+# this is a read, after all
+
 
 ### PART 9 () ###
 
