@@ -201,7 +201,7 @@ vcard = ( "BEGIN:VCARD\n"
 # if you are used to python, rewrite the following using slices!
 # <ugly warning>you should not program like this in python</ugly warning>
 
-# split vcards characters in blocs of 4 octets
+# split vcards characters in blocks of 4 octets
 blocks = []
 for block_number in range(len(vcard) / 4):
     index = block_number * 4
