@@ -267,7 +267,6 @@ for line_with_ending in tag_data.splitline_with_endings():
         break
 
     print line
-    pretty_print_vcard_line(line)
 
 ### PART 11 () ###
 
