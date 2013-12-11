@@ -116,7 +116,7 @@ print string_data
 ### PART 8 (write data) ###
 
 FIRST_USER_MEMORY_PAGE = 4
-LAST_USER_MEMORY_PAGE = 39
+LAST_USER_MEMORY_PAGE = 35
 
 # second version of transfer, with a guard
 def transfer(connection, tag_apdu):
