@@ -52,30 +52,30 @@ print line
 
 
 ### PART 4 (polling) ###
-#send tag request
-data, sw1, sw2 = connection.transmit([0xff, 0x0, 0x0, 0x0, 0x4, 0xd4, 0x4a, 0x2, 0x0, 0x0])
+# Polling: send tag request
+data, sw1, sw2 = connection.transmit([255, 0, 0, 0, 4, 212, 74, 2, 0, 0])
 
-#check error code
-if sw1 != 0x61:
+#check error code, don’t ask us why 97
+if sw1 != 97:
     print "polling error"
     exit()
 
+
 #get polling answer
-data, sw1, sw2 = connection.transmit([0xff,0xC0,0x0,0x0,sw2])
+data, sw1, sw2 = connection.transmit([255, 192, 0, 0, sw2])
 
-#check error code
-if sw1 != 0x90 and sw2 != 0x00:
-    print "get Response error"
-    exit()
+#check error code # skipped
 
+#Check if the message returned is as full as we’d expect
 if len(data) < 3:
-    print "not enought data"
+    print "That’s weird, we were expecting more data"
     exit()
 
 #is there at least one tag on the reader ?
 if data[2] < 1:
     print "no tag on the reader"
     exit()
+
 
 ### PART 5 (transfert function) ###
 def transfer(connection, tag_apdu):
