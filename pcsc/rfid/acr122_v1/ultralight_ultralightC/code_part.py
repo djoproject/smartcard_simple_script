@@ -18,14 +18,17 @@ connection.connect()
 
 
 ### PART 2 (list function) ###
-#>>>l = [11, 22, 33]
-#>>>l = l + [4]
-#>>>l
-#[1, 2, 3, 44]
-#>>l[0]
-#11
-#>>l[3]
-#44
+
+list1 = []
+list2 = [4, 2, 6, 10, -3]
+list3 = [0, "hello", 3, 10]
+
+list4 = [0, list3, list1, "really?"]
+print list4
+
+for item in list2:
+    print item
+
 
 ### PART 3 (get firmware version) ###
 data, sw1, sw2 = connection.transmit([0xff,0x0,0x48,0x1,0x0])
