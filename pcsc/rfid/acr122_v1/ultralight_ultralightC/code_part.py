@@ -4,10 +4,10 @@
 #import the smartcard library
 from smartcard.System import readers
 
-#get reader list
+#Get reader list … wait, what is a list?
 r=readers()
 
-#no reader connected
+#Check the length of the list… the what ?
 if len(r) == 0:
     print "No available reader"
     exit()
@@ -15,6 +15,7 @@ if len(r) == 0:
 #reader connection
 connection = r[0].createConnection()
 connection.connect()
+
 
 ### PART 2 (list function) ###
 #>>>l = [11, 22, 33]
