@@ -78,35 +78,28 @@ if data[2] < 1:
 
 
 ### PART 5 (transfert function) ###
-def transfer(connection, tag_apdu):
-    pn53x_apdu = [0xd4, 0x40, 0x01]
-    pn53x_apdu.extend(tag_apdu)
+def sendAndGet(connection, tag_apdu):
+    #The chip APDU
+    chip_apdu = [212, 64, 1]
     
-    send_data = [0xff, 0x0, 0x0, 0x0, len(pn53x_apdu),]
-    send_data.extend(pn53x_apdu)
-    send_data.append(0x0) #data expected
+    #The reader APDU takes into account the combined length
+    # of the chip apdu plus the tag apdu
+    # It appears in his last element: len(chip_apdu + tag_apdu) 
+    reader_apdu = [255, 0, 0, 0, len(chip_apdu + tag_apdu)]
     
-    #send request
-    data, sw1, sw2 = connection.transmit(send_data)
-
-    #check error code
-    if sw1 != 0x61:
-        print "to chip error"
-        exit()
-
+    #The whole message :
+    mess = reader_apdu + chip_apdu + tag_apdu
+    
+    #send whole message
+    data, sw1, sw2 = connection.transmit(mess)
+    
     #retrieve response
-    data, sw1, sw2 = connection.transmit([0xff,0xC0,0x0,0x0,sw2]) 
-
-    #check error code
-    if sw1 != 0x90 and sw2 != 0x00:
-        print "get Response error"
-        exit()
-        
-    if len(data) < 3:
-        print "Not enough data"
-        exit()
-        
+    #remember: sw2 gives us the size of the answer to expect
+    data, sw1, sw2 = connection.transmit([255, 192, 0, 0, sw2])
+    
+    # Return the interesting part of the data
     return data[3:]
+
 
 ### PART 6 (hexa function) ###
 #>>>hex(55)
