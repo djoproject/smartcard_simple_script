@@ -31,12 +31,25 @@ for item in list2:
 
 
 ### PART 3 (get firmware version) ###
-data, sw1, sw2 = connection.transmit([0xff,0x0,0x48,0x1,0x0])
+# Create the message list
+mess = [255, 0, 72, 1, 0]
 
+# Transmit the message to the Reader
+# Get the returned information in data, sw1 and sw2.
+data, sw1, sw2 = connection.transmit(mess)
+
+#Output the data we retrieved
 for c in data:
     print chr(c)
 print chr(sw1)
 print chr(sw2)
+
+#Output the data we retrieved like a boss 
+line = ""
+for c in data + [sw1, sw2]: # using list combination here, wooot!
+    line = line + chr(c)
+print line
+
 
 ### PART 4 (polling) ###
 #send tag request
