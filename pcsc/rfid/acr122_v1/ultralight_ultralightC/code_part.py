@@ -206,14 +206,16 @@ for block_number in range(len(vcard) / 4):
     index = block_number * 4
     blocks += [[ord(vcard[index]), ord(vcard[index+1]), ord(vcard[index+2]), ord(vcard[index+3])]]
 
-# finish last block
-last_block = []
-for index in range(len(blocks) * 4, len(vcard)):
-    last_block += [ord(vcard[index])]
-
-# add last block if needed
-if last_block != []:
+# finish last incomplete block if needed
+if len(blocks) * 4 != len(vcard):
+    # use zeroes to complete last block
+    last_block = [0x00, 0x00, 0x00, 0x00]
+    # add remaining data
+    for index in range(len(blocks) * 4, len(vcard)):
+        index_in_last_block = index - len(blocks) * 4
+        last_block[index_in_last_block] = [ord(vcard[index])]
     blocks += [last_block]
+
 
 # verify we will be able to write all in user memory
 if len(blocks) > LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE:
