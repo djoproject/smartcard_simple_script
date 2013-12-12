@@ -102,12 +102,16 @@ def sendAndGet(connection, tag_apdu):
 
 
 ### PART 6 (hexa function) ###
-#>>>hex(55)
-#'0x37'
-#>>>0x37
-#55
-#>>>int("0x37", 16)
-#0x55
+# part 3.b
+
+#Converting a value into its hexadecimal value
+hex(55) # returns the string "Ox37"
+
+#converting an hexadecimal string representation into an int
+int("0xA7", 16) # returns the integer 167
+
+#use this to directly write integers in hexadecimal notation
+0xA7 # also gives the integer 167
 
 
 ### PART 7 (read data) ###
