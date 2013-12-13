@@ -4,10 +4,10 @@
 #import the smartcard library
 from smartcard.System import readers
 
-#Get reader list … wait, what is a list?
+#Get reader list... wait, what is a list?
 r=readers()
 
-#Check the length of the list… the what ?
+#Check the length of the list... the what ?
 if len(r) == 0:
     print "No available reader"
     exit()
@@ -55,7 +55,7 @@ print line
 # Polling: send tag request
 data, sw1, sw2 = connection.transmit([255, 0, 0, 0, 4, 212, 74, 2, 0, 0])
 
-#check error code, don’t ask us why 97
+#check error code, don't ask us why 97
 if sw1 != 97:
     print "polling error"
     exit()
@@ -66,9 +66,9 @@ data, sw1, sw2 = connection.transmit([255, 192, 0, 0, sw2])
 
 #check error code # skipped
 
-#Check if the message returned is as full as we’d expect
+#Check if the message returned is as full as we'd expect
 if len(data) < 3:
-    print "That’s weird, we were expecting more data"
+    print "That's weird, we were expecting more data"
     exit()
 
 #is there at least one tag on the reader ?
@@ -120,7 +120,7 @@ int("0xA7", 16) # returns the integer 167
 
 ### PART 7 (read data) ###
 address = 0x04
-data = send_and_get(connection, [0x30] + address)
+data = send_and_get(connection, [0x30, address])
 
 string_data = ""
 for octet in data:
@@ -129,7 +129,7 @@ for octet in data:
 print string_data
 
 def read(connection, address):
-    data = send_and_get(connection, [0x30] + address)
+    data = send_and_get(connection, [0x30, address])
     return data
     
 def data_to_string(data):
@@ -167,12 +167,11 @@ def write_page(connection, address, data_to_write):
         exit()
     
     #The protocol requires to add 0s to reach 16 bytes
-    #missing positions in page to write will also be 0s
     data_to_send = data_to_write
     for i in range(len(data_to_send), 16):
         data_to_send += [0] 
     
-    send_and_get(connection, [0xA0] + address + data_to_send)
+    send_and_get(connection, [0xA0, address] + data_to_send)
     # no interesting data returned: this is a write
 
 
@@ -180,9 +179,7 @@ def write_page(connection, address, data_to_write):
 sector_to_write = 0x4
 data = [0x4F, 0x54, 0x53] # intentionally too short
 write_page(connection, sector_to_write, data)
-print "wrote data: " + read_string_on_tag(sector_to_write)
-# data should be the empty list, because no data is sent back from the reader
-# this is a read, after all
+print "wrote data: " + read_string_on_tag(connection, sector_to_write)
 
 ### PART 9 (Writing a vcard) ###
 
@@ -197,12 +194,24 @@ print "wrote data: " + read_string_on_tag(sector_to_write)
 
 # in python, statements continue until last ([{ is closed
 # + using this form (intead of triple-quoted strings) to explicit the line terminator
+
 vcard = ( "BEGIN:VCARD\n"
         + "N:Potter;Harry;;Mr;\n"
         + "ADR;DOM;PARCEL;HOME:;;4, Privet Drive;Little Whinging;Surrey;;UK\n"
         + "ROLE:student\n"
         + "END:VCARD\n"
         )
+
+def string_to_octets(string):
+    octets = []
+
+    for character in string:
+        # convert each character to its ascii number
+        ascii_num = ord(character)
+        octets += [ascii_num]
+
+    return octets
+
 
 def write(connection, starting_page, data):
     # write data, page (= 4 bytes) by page
@@ -214,7 +223,7 @@ def write(connection, starting_page, data):
         # start at starting_page and divide by 4 since we write 4 bytes at once
         page = starting_page + index / 4
 
-        # python is pure magic! strings can be sliced too!
+        # Python is magic! slices can have a start!
         # sequence[slice_start:slice_end]
         page_data = data[index:index+4]
 
@@ -222,8 +231,11 @@ def write(connection, starting_page, data):
         write_page(connection, page, page_data) 
 
 
-write(connection, 0x4, vcard)        
+# write a string from the start of the card
+def write_string_to_card(connection, string):
+    write(connection, 0x4, string_to_octets(string))
 
+write_string_to_card(connection, vcard)
 
 ### PART 10 (Read a vcard from the RFID tag) ###
 
@@ -237,6 +249,8 @@ def read_all_user_memory(connection):
 
         # append the data, converted to string, from each sector
         data_string += read_string_on_tag(connection, sector_page)
+
+    return data_string
 
 print read_all_user_memory(connection)
         
