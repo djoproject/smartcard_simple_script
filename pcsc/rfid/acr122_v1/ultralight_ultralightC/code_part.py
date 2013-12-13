@@ -186,23 +186,14 @@ print "wrote data: " + read_string_on_tag(sector_to_write)
 
 ### PART 9 (Writing a vcard) ###
 
-## Vcard
+## Vcard DROPPED!!!
+## Still here to test arbitrary length reads
 
-#VERSION:2.1 !!!
 
-# basically works like:
+# Vcard basically works like:
 # <field name>:<field part 1>;<field part 2>;...
 
-# let's write
-
-#BEGIN:VCARD
-#N:Potter;Harry;;Mr;
-#ADR;DOM;PARCEL;HOME:;;Privet Drive;Little Whinging;Surrey;;United Kingdom
-#EMAIL;INTERNET:harry.potter@hogwarts.edu
-#ORG:hogwarts
-#TITLE:wizard
-#ROLE:student
-#END:VCARD
+# let's write Harry's
 
 # in python, statements continue until last ([{ is closed
 # + using this form (intead of triple-quoted strings) to explicit the line terminator
@@ -213,46 +204,26 @@ vcard = ( "BEGIN:VCARD\n"
         + "END:VCARD\n"
         )
 
-# if you are used to python, rewrite the following using slices!
-# <ugly warning>you should not program like this in python</ugly warning>
+def write(connection, starting_page, data):
+    # write data, page (= 4 bytes) by page
 
-# split vcards characters in blocks of 4 octets
-blocks = []
-for block_number in range(len(vcard) / 4):
-    index = block_number * 4
-    blocks += [[ord(vcard[index]), ord(vcard[index+1]), ord(vcard[index+2]), ord(vcard[index+3])]]
+    # range(0, len(data), 4) starts at 0, increments index by 4 until right before reaching len(data). 
+    # Ex: [0, 4, 8, 12] if len(data) is 15
+    for index in range(0, len(data), 4):
 
-# finish last incomplete block if needed
-if len(blocks) * 4 != len(vcard):
-    # use zeroes to complete last block
-    last_block = [0x00, 0x00, 0x00, 0x00]
-    # add remaining data
-    for index in range(len(blocks) * 4, len(vcard)):
-        index_in_last_block = index - len(blocks) * 4
-        last_block[index_in_last_block] = [ord(vcard[index])]
-    blocks += [last_block]
+        # start at starting_page and divide by 4 since we write 4 bytes at once
+        page = starting_page + index / 4
+
+        # python is pure magic! strings can be sliced too!
+        # sequence[slice_start:slice_end]
+        page_data = data[index:index+4]
+
+        # write page. Surprised?
+        write_page(connection, page, page_data) 
 
 
-# verify we will be able to write all in user memory
-if len(blocks) > LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE:
-    print "vcard is too large for the user memory of the card!"
-    print "number of required memory pages: " + str(len(blocks))
-    print "number of 4 byte user memory pages: " + str(LAST_USER_MEMORY_PAGE - FIRST_USER_MEMORY_PAGE)
-    exit()
+write(connection, 0x4, vcard)        
 
-
-# write each block to the card
-page_number=4
-for block in blocks:
-    padding = [0x00, 0x00, 0x00, 0x00, 
-            0x00, 0x00, 0x00, 0x00, 
-            0x00, 0x00, 0x00, 0x00] 
-
-    full_apdu = [0xa0, page_number] + block + padding
-    transfer(connection, full_apdu)
-    page_number += 1
-    
-print "vcard written"
 
 ### PART 10 (Read a vcard from the RFID tag) ###
 
