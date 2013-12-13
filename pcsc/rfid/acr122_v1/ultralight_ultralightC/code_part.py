@@ -128,6 +128,20 @@ for octet in data:
 
 print string_data
 
+def read(connection, address):
+    data = send_and_get(connection, [0x30] + address)
+    return data
+    
+def data_to_string(data):
+    string_data = ""
+    for octet in data:
+        string_data += chr(octet)
+    return string_data
+    
+def read_string_on_tag(connection, address):
+    return data_to_string(read(connection, address))
+
+
 
 ### PART 8 (write data) ###
 
