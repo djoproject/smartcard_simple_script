@@ -120,7 +120,7 @@ int("0xA7", 16) # returns the integer 167
 
 ### PART 7 (read data) ###
 address = 0x04
-data = sendAndGet(connection, [0x30] + address)
+data = send_and_get(connection, [0x30] + address)
 
 string_data = ""
 for octet in data:
