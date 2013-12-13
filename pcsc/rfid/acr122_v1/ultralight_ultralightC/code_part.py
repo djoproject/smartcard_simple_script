@@ -78,7 +78,7 @@ if data[2] < 1:
 
 
 ### PART 5 (transfert function) ###
-def sendAndGet(connection, tag_apdu):
+def send_and_get(connection, tag_apdu):
     #The chip APDU
     chip_apdu = [212, 64, 1]
     
@@ -86,9 +86,12 @@ def sendAndGet(connection, tag_apdu):
     # of the chip apdu plus the tag apdu
     # It appears in his last element: len(chip_apdu + tag_apdu) 
     reader_apdu = [255, 0, 0, 0, len(chip_apdu + tag_apdu)]
+
+    #close message by indicating that we expect data back
+    expect_data = [0]
     
     #The whole message :
-    mess = reader_apdu + chip_apdu + tag_apdu
+    mess = reader_apdu + chip_apdu + tag_apdu + expect_data
     
     #send whole message
     data, sw1, sw2 = connection.transmit(mess)
@@ -99,6 +102,7 @@ def sendAndGet(connection, tag_apdu):
     
     # Return the interesting part of the data
     return data[3:]
+
 
 
 ### PART 6 (hexa function) ###
