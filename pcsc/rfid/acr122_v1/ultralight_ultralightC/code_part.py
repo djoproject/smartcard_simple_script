@@ -1,5 +1,6 @@
 ### PART  () ###
 ### PART 1 (init context + establish a connection) ###
+print "# PART 1"
 
 #import the smartcard library
 from smartcard.System import readers
@@ -18,6 +19,7 @@ connection.connect()
 
 
 ### PART 2 (list function) ###
+print "# PART 2"
 
 list1 = []
 list2 = [4, 2, 6, 10, -3]
@@ -31,6 +33,8 @@ for item in list2:
 
 
 ### PART 3 (get firmware version) ###
+print "# PART 3"
+
 # Create the message list
 mess = [255, 0, 72, 1, 0]
 
@@ -52,6 +56,8 @@ print line
 
 
 ### PART 4 (polling) ###
+print "# PART 4"
+
 # Polling: send tag request
 data, sw1, sw2 = connection.transmit([255, 0, 0, 0, 4, 212, 74, 2, 0, 0])
 
@@ -78,6 +84,8 @@ if data[2] < 1:
 
 
 ### PART 5 (transfert function) ###
+print "# PART 5"
+
 def send_and_get(connection, tag_apdu):
     #The chip APDU
     chip_apdu = [212, 64, 1]
@@ -106,6 +114,8 @@ def send_and_get(connection, tag_apdu):
 
 
 ### PART 6 (hexa function) ###
+print "# PART 6"
+
 # part 3.b
 
 #Converting a value into its hexadecimal value
@@ -119,6 +129,8 @@ int("0xA7", 16) # returns the integer 167
 
 
 ### PART 7 (read data) ###
+print "# PART 7"
+
 address = 0x04
 data = send_and_get(connection, [0x30, address])
 
@@ -144,6 +156,7 @@ def read_string_on_tag(connection, address):
 
 
 ### PART 8 (write data) ###
+print "# PART 8"
 
 def write_page(connection, address, data_to_write):
     startAddress = 0x4
@@ -182,6 +195,7 @@ write_page(connection, sector_to_write, data)
 print "wrote data: " + read_string_on_tag(connection, sector_to_write)
 
 ### PART 9 (Writing a vcard) ###
+print "# PART 9"
 
 ## Vcard DROPPED!!!
 ## Still here to test arbitrary length reads
@@ -238,6 +252,7 @@ def write_string_to_card(connection, string):
 write_string_to_card(connection, vcard)
 
 ### PART 10 (Read a vcard from the RFID tag) ###
+print "# PART 10"
 
 def read_all_user_memory(connection):
     start_address = 0x4
@@ -256,6 +271,8 @@ print read_all_user_memory(connection)
         
 
 ### PART 11 () ###
+print "# PART 11"
 
 ### PART 12 () ###
+print "# PART 12"
 
