@@ -227,35 +227,19 @@ write(connection, 0x4, vcard)
 
 ### PART 10 (Read a vcard from the RFID tag) ###
 
-# dump all the user memory to a string
-tag_data = ""
-# we can read 4 pages at a time, hence the extra 'step' parameter
-sector_numbers = range(FIRST_USER_MEMORY_PAGE, LAST_USER_MEMORY_PAGE + 1, 4)
-for sector_number in sector_numbers:
-    for octet in transfer(connection, [0x30, sector_number]):
-        tag_data += chr(octet)
+def read_all_user_memory(connection):
+    start_address = 0x4
+    end_address = 0x23
+    data_string = ""
 
+    # go sector (= 16 bytes = 4* 4 bytes = 4 pages) by sector
+    for sector_page in range(start_address, end_address, 4):
 
-# stupid vcard parsing algorithm:
-# a main loop over the lines
-# print lines between the first encountered BEGIN:VCARD END:VCARD
-found_vcard = False
-for line_with_ending in tag_data.splitlines():
-    # remove line_with_ending ending characters
-    line = line_with_ending.rstrip("\r\n")
+        # append the data, converted to string, from each sector
+        data_string += read_string_on_tag(connection, sector_page)
 
-    if line.upper().startswith("BEGIN:VCARD"):
-        found_vcard = True
-        continue
-
-    if not found_vcard:
-        continue
-
-    if line.upper().startswith("END:VCARD"):
-        # stop processing if we reached the end of the vcard
-        break
-
-    print line
+print read_all_user_memory(connection)
+        
 
 ### PART 11 () ###
 
