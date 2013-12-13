@@ -145,56 +145,42 @@ def read_string_on_tag(connection, address):
 
 ### PART 8 (write data) ###
 
-FIRST_USER_MEMORY_PAGE = 4
-LAST_USER_MEMORY_PAGE = 35
-
-# second version of transfer, with a guard
-def transfer(connection, tag_apdu):
-    # preserve the tags: prevent writing readonly and write-once memory
-    write_command = 0xa0
-    allowed_memory_pages = range(FIRST_USER_MEMORY_PAGE, LAST_USER_MEMORY_PAGE + 1)
-
-    if tag_apdu[0] == write_command and tag_apdu[1] not in allowed_memory_pages:
-        print "Ouch! Attempted to write non-user memory. Your apdu: " + str(tag_apdu)
-        exit()
-        
-    pn53x_apdu = [0xd4, 0x40, 0x01]
-    pn53x_apdu.extend(tag_apdu)
+def write_page(connection, address, data_to_write):
+    startAddress = 0x4
+    endAddress = 0x23
     
-    send_data = [0xff, 0x0, 0x0, 0x0, len(pn53x_apdu),]
-    send_data.extend(pn53x_apdu)
-    send_data.append(0x0) #data expected
+    # Exit if we are after the end, or before the start.
+    if address > endAddress:
+        print "too high address " + str(endAddress)
+        exit()
+
+    if address < startAddress:
+        print "too low address " + str(endAddress)
+        exit()
+
+    # If you want to combine two conditions in a single if
+    # you can link them with the keyword and. Try it!
     
-    #send request
-    data, sw1, sw2 = connection.transmit(send_data)
-
-    #check error code
-    if sw1 != 0x61:
-        print "to chip error:" + str(sw1)
+    # You write page by page. So you can provide at most 4 bytes of data per call
+    if len(data_to_write) > 4:
+        print "too much data " + str(data_to_write)
         exit()
+    
+    #The protocol requires to add 0s to reach 16 bytes
+    #missing positions in page to write will also be 0s
+    data_to_send = data_to_write
+    for i in range(len(data_to_send), 16):
+        data_to_send += [0] 
+    
+    send_and_get(connection, [0xA0] + address + data_to_send)
+    # no interesting data returned: this is a write
 
-    #retrieve response
-    data, sw1, sw2 = connection.transmit([0xff,0xC0,0x0,0x0,sw2]) 
 
-    #check error code
-    if sw1 != 0x90 and sw2 != 0x00:
-        print "get Response error: " + str(sw1) + " " + str(sw2)
-        exit()
-        
-    if len(data) < 3:
-        print "Not enough data"
-        exit()
-        
-    return data[3:]
 
 sector_to_write = 0x4
-data = [0x4F, 0x54, 0x53, 0x0A]
-padding = [0x00, 0x00, 0x00, 0x00, 
-        0x00, 0x00, 0x00, 0x00, 
-        0x00, 0x00, 0x00, 0x00] 
-full_apdu = [0xa0, sector_to_write] + data + padding
-transfer(connection, full_apdu)
-print "wrote data"
+data = [0x4F, 0x54, 0x53] # intentionally too short
+write_page(connection, sector_to_write, data)
+print "wrote data: " + read_string_on_tag(sector_to_write)
 # data should be the empty list, because no data is sent back from the reader
 # this is a read, after all
 
